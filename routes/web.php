@@ -50,6 +50,10 @@ Route::prefix('user')
     ->middleware(['authorize'])
     ->group(function () {
         Route::get('', 'UserController@index')->name('home');
+        Route::put('blocklist/{uuid}', 'UserController@setBlocklist')->name('blocklist.set');
+        Route::get('blocklist', 'UserController@getBlocklist')->name('blocklist.get');
+        Route::delete('blocklist/{uuid}', 'UserController@removeBlocklist')->name('blocklist.remove');
+        Route::delete('blocklist', 'UserController@clearBlocklist')->name('blocklist.clear');
         Route::post('notifications/{id}', 'NotificationsController@read')->name('notification.read');
         Route::get('score-info', 'UserController@scoreInfo')->name('score');
         Route::post('sign', 'UserController@sign')->name('sign');
@@ -149,12 +153,21 @@ Route::prefix('admin')
         Route::prefix('players')->name('players.')->group(function () {
             Route::view('', 'admin.players')->name('view');
             Route::get('list', 'PlayersManagementController@list')->name('list');
+            Route::get('blocked/{uuid}/toggle', 'BlocklistGlobalController@toggleblocked')->name('toggleblocked');//toggle chat
+            Route::get('blocked/{uuid}', 'BlocklistGlobalController@getblocked')->name('getblocked');//check if blocked
+            Route::get('blocked', 'BlocklistGlobalController@getallblocked')->name('getallblocked');//list system blocklist
+            Route::get('blocked/clear', 'BlocklistGlobalController@clearallblocked')->name('clearallblocked');//clear system blocklist
+
             Route::prefix('{player}')->group(function () {
                 Route::put('name', 'PlayersManagementController@name')->name('name');
                 Route::put('owner', 'PlayersManagementController@owner')->name('owner');
                 Route::put('textures', 'PlayersManagementController@texture')->name('texture');
                 Route::delete('', 'PlayersManagementController@delete')->name('delete');
+                Route::get('attributes', 'PlayersManagementController@getAttributes')->name('attributes');
+                Route::get('attributes/multiplayer_server_enabled', 'PlayersManagementController@setAttributesmultiplayer_server_enabled')->name('setattributesmultiplayer_server_enabled');
+                Route::get('attributes/online_chat_enabled', 'PlayersManagementController@setAttributesonline_chat_enabled')->name('setattributesonline_chat_enabled');//toggle chat
             });
+            
         });
 
         Route::prefix('closet')->name('closet.')->group(function () {
@@ -166,6 +179,14 @@ Route::prefix('admin')
             Route::view('', 'admin.reports')->name('view');
             Route::put('{report}', 'ReportController@review')->name('review');
             Route::get('list', 'ReportController@manage')->name('list');
+            // Yggdrasil abuse reports (admin/reports 下)
+            Route::get('yggdrasilreports/all', 'AbuseReportsController@getAllReports')->name('abuse.getall');
+            Route::delete('yggdrasilreports/all', 'AbuseReportsController@deleteAllReports')->name('abuse.deleteall');
+            Route::get('yggdrasilreports/{reportuuid}', 'AbuseReportsController@getReport')->name('abuse.get');
+            Route::delete('yggdrasilreports/{reportuuid}', 'AbuseReportsController@deleteReport')->name('abuse.delete');
+            Route::get('yggdrasilreports/profile/{reportuuid}', 'AbuseReportsController@getProfileReport')->name('abuse.getprofile');
+            Route::delete('yggdrasilreports/profile/{reportuuid}', 'AbuseReportsController@deleteProfileReport')->name('abuse.deleteprofile');
+        
         });
 
         Route::prefix('i18n')->name('i18n.')->group(function () {

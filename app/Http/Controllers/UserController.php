@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\UserProfileUpdated;
+use App\Models\UserBlocklist;
 use App\Mail\EmailVerification;
 use App\Models\Texture;
 use App\Models\User;
@@ -200,6 +201,82 @@ class UserController extends Controller
             ->with('user', $user)
             ->with('grid', $grid)
             ->with('site_name', option_localized('site_name'));
+    }
+    public function getBlocklist()
+    {
+        /** @var User */
+        $user = Auth::user();
+        $blocklist = UserBlocklist::queryBlocklist($user->uid);
+        return response()->json([
+            'blocklist' => $blocklist,
+        ]);
+    }
+    public function setBlocklist(string $uuid)
+    {
+        /** @var User */
+        $user = Auth::user();
+        try {
+            $record = UserBlocklist::addBlocklist($user->uid, $uuid);
+            return response()->json([
+                'message' => 'Added to blocklist',
+                'record' => $record,
+            ], 201);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'error' => 'InvalidUUID',
+                'errorMessage' => $e->getMessage(),
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'ServerError',
+                'errorMessage' => 'Failed to add to blocklist',
+            ], 500);
+        }
+    }
+    public function removeBlocklist(string $uuid)
+    {
+        /** @var User */
+        $user = Auth::user();
+        try {
+            $deleted = UserBlocklist::removeBlocklist($user->uid, $uuid);
+            if ($deleted === 0) {
+                return response()->json([
+                    'error' => 'NotFound',
+                    'errorMessage' => 'Blocklist entry not found',
+                ], 404);
+            }
+            return response()->json([
+                'message' => 'Removed from blocklist',
+                'deleted' => $deleted,
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'error' => 'InvalidUUID',
+                'errorMessage' => $e->getMessage(),
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'ServerError',
+                'errorMessage' => 'Failed to remove from blocklist',
+            ], 500);
+        }
+    }
+    public function clearBlocklist()
+    {
+        /** @var User */
+        $user = Auth::user();
+        try {
+            $deleted = UserBlocklist::clearBlocklist($user->uid);
+            return response()->json([
+                'message' => 'Cleared blocklist',
+                'deleted' => $deleted,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'ServerError',
+                'errorMessage' => 'Failed to clear blocklist',
+            ], 500);
+        }
     }
 
     public function handleProfile(Request $request, Filter $filter, Dispatcher $dispatcher)

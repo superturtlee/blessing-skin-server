@@ -1,0 +1,49 @@
+<div class="card mt-4">
+  <div class="card-header">
+    <strong>Yggdrasil 举报管理</strong>
+  </div>
+  <div class="card-body">
+    <div class="mb-3">
+      <a class="btn btn-primary" href="{{ route('admin.reports.abuse.getall') }}" target="_blank">
+        下载所有举报
+      </a>
+      <form class="d-inline" action="{{ route('admin.reports.abuse.deleteall') }}" method="POST" onsubmit="return confirm('确认删除所有举报？此操作不可撤销');">
+        {{ csrf_field()|raw }}
+        <input type="hidden" name="_method" value="DELETE">
+        <button type="submit" class="btn btn-danger">删除所有举报</button>
+      </form>
+    </div>
+
+    <hr>
+
+    <div class="row g-3 align-items-end">
+      <div class="col-md-5">
+        <label for="reportIdInput" class="form-label">特定举报（report_id）</label>
+        <input type="text" id="reportIdInput" class="form-control" placeholder="输入 report_id">
+      </div>
+      <div class="col-md-7">
+        <a class="btn btn-outline-primary me-2" href="#" id="btnDownloadByReportId" target="_blank">下载该举报</a>
+        <form id="formDeleteByReportId" class="d-inline" action="#" method="POST" onsubmit="return confirm('确认删除该举报？');">
+          {{ csrf_field()|raw }}
+          <input type="hidden" name="_method" value="DELETE">
+          <button type="submit" class="btn btn-outline-danger">删除该举报</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="row g-3 align-items-end mt-3">
+      <div class="col-md-5">
+        <label for="profileUuidInput" class="form-label">特定举报者（profile_uuid）</label>
+        <input type="text" id="profileUuidInput" class="form-control" placeholder="输入举报者 profile_uuid">
+      </div>
+      <div class="col-md-7">
+        <a class="btn btn-outline-primary me-2" href="#" id="btnDownloadByProfile" target="_blank">下载该举报者所有举报</a>
+        <form id="formDeleteByProfile" class="d-inline" action="#" method="POST" onsubmit="return confirm('确认删除该举报者所有举报？');">
+          {{ csrf_field()|raw }}
+          <input type="hidden" name="_method" value="DELETE">
+          <button type="submit" class="btn btn-outline-danger">删除该举报者所有举报</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

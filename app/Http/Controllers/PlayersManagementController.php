@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Player;
 use App\Models\Texture;
 use App\Models\User;
+use App\Models\UserBlocklist;
+use App\Models\PlayerAttributes;
 use App\Rules;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Http\Request;
@@ -33,7 +35,36 @@ class PlayersManagementController extends Controller
             return $next($request);
         })->except(['list']);
     }
+    public function getAttributes(Request $request, Player $player)
+    {
+        $attrs = PlayerAttributes::getAttr($player->pid);
+        return response()->json([
+            'multiplayer_server_enabled' => (bool)$attrs->multiplayer_server_enabled,
+            'online_chat_enabled' => (bool)$attrs->online_chat_enabled,
+        ]);
+    }
+    public function setAttributesmultiplayer_server_enabled(Request $request, Player $player)
+    {
+        $attrs = PlayerAttributes::getAttr($player->pid);
+        $attrs->multiplayer_server_enabled = !$attrs->multiplayer_server_enabled;
+        $attrs->save();
+        return response()->json([
+            'multiplayer_server_enabled' => (bool)$attrs->multiplayer_server_enabled,
+            'online_chat_enabled' => (bool)$attrs->online_chat_enabled,
+        ]);
+    }
+    public function setAttributesonline_chat_enabled(Request $request, Player $player)
+    {
+        $attrs = PlayerAttributes::getAttr($player->pid);
+        $attrs->online_chat_enabled = !$attrs->online_chat_enabled;
+        $attrs->save();
+        return response()->json([
+            'multiplayer_server_enabled' => (bool)$attrs->multiplayer_server_enabled,
+            'online_chat_enabled' => (bool)$attrs->online_chat_enabled,
+        ]);
+    }
 
+    
     public function list(Request $request)
     {
         $query = $request->query('q');

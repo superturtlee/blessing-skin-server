@@ -1,0 +1,45 @@
+<script>
+  (function () {
+    const baseGetReport = "{{ route('admin.reports.abuse.get', {'reportuuid': '__RID__'}) }}";
+    const baseDelReport = "{{ route('admin.reports.abuse.delete', {'reportuuid': '__RID__'}) }}";
+    const baseGetProfile = "{{ route('admin.reports.abuse.getprofile', {'reportuuid': '__PID__'}) }}";
+    const baseDelProfile = "{{ route('admin.reports.abuse.deleteprofile', {'reportuuid': '__PID__'}) }}";
+
+    const ridInput = document.getElementById('reportIdInput');
+    const pidInput = document.getElementById('profileUuidInput');
+
+    const btnDownloadByReportId = document.getElementById('btnDownloadByReportId');
+    const formDeleteByReportId = document.getElementById('formDeleteByReportId');
+
+    const btnDownloadByProfile = document.getElementById('btnDownloadByProfile');
+    const formDeleteByProfile = document.getElementById('formDeleteByProfile');
+
+    function buildUrl(tpl, value, placeholder) {
+      return tpl.replace(placeholder, encodeURIComponent(value.trim()));
+    }
+
+    btnDownloadByReportId.addEventListener('click', function (e) {
+      const v = ridInput.value;
+      if (!v) { e.preventDefault(); alert('请输入 report_id'); return; }
+      this.href = buildUrl(baseGetReport, v, '__RID__');
+    });
+
+    formDeleteByReportId.addEventListener('submit', function (e) {
+      const v = ridInput.value;
+      if (!v) { e.preventDefault(); alert('请输入 report_id'); return; }
+      this.action = buildUrl(baseDelReport, v, '__RID__');
+    });
+
+    btnDownloadByProfile.addEventListener('click', function (e) {
+      const v = pidInput.value;
+      if (!v) { e.preventDefault(); alert('请输入举报者 profile_uuid'); return; }
+      this.href = buildUrl(baseGetProfile, v, '__PID__');
+    });
+
+    formDeleteByProfile.addEventListener('submit', function (e) {
+      const v = pidInput.value;
+      if (!v) { e.preventDefault(); alert('请输入举报者 profile_uuid'); return; }
+      this.action = buildUrl(baseDelProfile, v, '__PID__');
+    });
+  })();
+</script>

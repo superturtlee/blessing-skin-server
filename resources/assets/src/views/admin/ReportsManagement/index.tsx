@@ -13,6 +13,199 @@ import ImageBox from './ImageBox'
 
 const Previewer = React.lazy(() => import('@/components/Viewer'))
 
+const YggdrasilReportsTools: React.FC = () => {
+  const [reportId, setReportId] = useState('')
+  const [profileUuid, setProfileUuid] = useState('')
+
+  const api = {
+    getAll: `${blessing.base_url}/admin/reports/yggdrasilreports/all`,
+    delAll: `${blessing.base_url}/admin/reports/yggdrasilreports/all`,
+    getById: (id: string) =>
+      `${blessing.base_url}/admin/reports/yggdrasilreports/${encodeURIComponent(
+        id.trim(),
+      )}`,
+    delById: (id: string) =>
+      `${blessing.base_url}/admin/reports/yggdrasilreports/${encodeURIComponent(
+        id.trim(),
+      )}`,
+    getByProfile: (pid: string) =>
+      `${blessing.base_url}/admin/reports/yggdrasilreports/profile/${encodeURIComponent(
+        pid.trim(),
+      )}`,
+    delByProfile: (pid: string) =>
+      `${blessing.base_url}/admin/reports/yggdrasilreports/profile/${encodeURIComponent(
+        pid.trim(),
+      )}`,
+  }
+
+const getCsrfToken = () => {
+  // 优先 meta 标签
+  const meta = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null
+  if (meta?.content) return meta.content
+  // 退回全局变量（Blessing 通常会注入）
+  // @ts-ignore
+  if (window.blessing?.csrf_token) return window.blessing.csrf_token
+  return ''
+}
+
+const del = async (url: string, okMsg = 'Success') => {
+  try {
+    const resp = await window.fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json',
+        // 某些环境下带上 Referer 更稳
+        'Referer': window.location.href,
+      },
+      credentials: 'same-origin', // 一定要带 Cookie
+    })
+    if (resp.ok) {
+      toast.success(okMsg)
+    } else {
+      const data = await resp.json().catch(() => ({}))
+      toast.error(data?.errorMessage || `HTTP ${resp.status}`)
+    }
+  } catch (e) {
+    toast.error(String(e))
+  }
+}
+
+  const confirm = async (text: string) => {
+    try {
+      await showModal({ text, okButtonType: 'danger' })
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  return (
+    <div className="card mb-4">
+      <div className="card-header">
+        <strong>Yggdrasil Reports</strong>
+      </div>
+      <div className="card-body">
+        {/* 所有举报 */}
+        <div className="mb-3">
+          <a className="btn btn-primary mr-2" href={api.getAll} target="_blank" rel="noreferrer">
+            Download All
+          </a>
+          <button
+            className="btn btn-danger"
+            onClick={async () => {
+              if (await confirm('Confirm delete all reports?')) {
+                del(api.delAll, 'Deleted all reports')
+              }
+            }}
+          >
+            Delete All Reports
+          </button>
+        </div>
+
+        <hr />
+
+        {/* 特定举报（report_id） */}
+        <div className="row g-3 align-items-end mb-3">
+          <div className="col-md-5">
+            <label htmlFor="reportIdInput" className="form-label">
+              Specify a report(report_id)
+            </label>
+            <input
+              type="text"
+              id="reportIdInput"
+              className="form-control"
+              placeholder="Input report_id"
+              value={reportId}
+              onChange={(e) => setReportId(e.target.value)}
+            />
+          </div>
+          <div className="col-md-7">
+            <a
+              className="btn btn-outline-primary mr-2"
+              href={reportId.trim() ? api.getById(reportId) : '#'}
+              target="_blank"
+              onClick={(e) => {
+                if (!reportId.trim()) {
+                  e.preventDefault()
+                  toast.error('Please input report_id')
+                }
+              }}
+              rel="noreferrer"
+            >
+              Download Report
+            </a>
+            <button
+              className="btn btn-outline-danger"
+              onClick={async () => {
+                const id = reportId.trim()
+                if (!id) {
+                  toast.error('Please input report_id')
+                  return
+                }
+                if (await confirm('Confirm delete this report?')) {
+                  del(api.delById(id), 'Deleted this report')
+                }
+              }}
+            >
+              Delete This Report
+            </button>
+          </div>
+        </div>
+
+        {/* 特定举报者（profile_uuid） */}
+        <div className="row g-3 align-items-end">
+          <div className="col-md-5">
+            <label htmlFor="profileUuidInput" className="form-label">
+              Specify a Reporter(profile_uuid)
+            </label>
+            <input
+              type="text"
+              id="profileUuidInput"
+              className="form-control"
+              placeholder="Please input profile_uuid"
+              value={profileUuid}
+              onChange={(e) => setProfileUuid(e.target.value)}
+            />
+          </div>
+          <div className="col-md-7">
+            <a
+              className="btn btn-outline-primary mr-2"
+              href={profileUuid.trim() ? api.getByProfile(profileUuid) : '#'}
+              target="_blank"
+              onClick={(e) => {
+                if (!profileUuid.trim()) {
+                  e.preventDefault()
+                  toast.error('Please input profile_uuid')
+                }
+              }}
+              rel="noreferrer"
+            >
+              Download All Reports by Reporter
+            </a>
+            <button
+              className="btn btn-outline-danger"
+              onClick={async () => {//
+                const pid = profileUuid.trim()
+                if (!pid) {
+                  toast.error('Please input profile_uuid')
+                  return
+                }
+                if (await confirm('Confirm delete all reports for this reporter?')) {
+                  del(api.delByProfile(pid), 'Deleted all reports for this reporter')
+                }
+              }}
+            >
+              Delete All Reports by Reporter
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const ReportsManagement: React.FC = () => {
   const [reports, setReports] = useImmer<Report[]>([])
   const [page, setPage] = useState(1)
@@ -87,6 +280,10 @@ const ReportsManagement: React.FC = () => {
 
   return (
     <div className="row">
+      <div className="col-lg-12">
+        <YggdrasilReportsTools />
+      </div>
+
       <div className="col-lg-8">
         <div className="card">
           <div className="card-header">

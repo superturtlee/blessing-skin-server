@@ -64,5 +64,11 @@ export default {
     profile: { avatar: () => '/user/profile/avatar' as const },
     score: () => '/user/score-info' as const,
     sign: () => '/user/sign' as const,
+    blocklist: {
+      set: (uuid: string) => `/user/blocklist/${uuid}`,
+      get: () => '/user/blocklist' as const,
+      remove: (uuid: string) => `/user/blocklist/${uuid}`,
+      clear: () => '/user/blocklist' as const,
+    },
   },
 }
